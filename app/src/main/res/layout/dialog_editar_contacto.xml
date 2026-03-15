@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Nombre"
+        android:textColor="@color/black"
+        android:textSize="12sp" />
+    <EditText
+        android:id="@+id/etNombreEdit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Nombre"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        android:layout_marginBottom="10dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Teléfono"
+        android:textColor="@color/black"
+        android:textSize="12sp" />
+    <EditText
+        android:id="@+id/etTelefonoEdit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Teléfono"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        android:inputType="phone"
+        android:layout_marginBottom="10dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Latitud (Bloqueada)"
+        android:textColor="@color/black"
+        android:textSize="12sp" />
+    <EditText
+        android:id="@+id/etLatitudEdit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Latitud"
+        android:textColor="#555555"
+        android:textStyle="bold"
+        android:enabled="false"
+        android:layout_marginBottom="10dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Longitud (Bloqueada)"
+        android:textColor="@color/black"
+        android:textSize="12sp" />
+    <EditText
+        android:id="@+id/etLongitudEdit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Longitud"
+        android:textColor="#555555"
+        android:textStyle="bold"
+        android:enabled="false" />
+
+</LinearLayout>

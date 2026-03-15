@@ -21,7 +21,7 @@ app.post('/contactos', (req, res) => {
     res.status(201).json(nuevo);
 });
 
-// POST - Actualizar contacto (tu API usa POST con /{id})
+// POST - Actualizar contacto
 app.post('/contactos/:id', (req, res) => {
     const idx = contactos.findIndex(c => c.id === req.params.id);
     if (idx === -1) return res.status(404).json({ error: 'No encontrado' });

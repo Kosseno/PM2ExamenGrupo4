@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Filter;
 import android.widget.Filterable;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -16,11 +17,17 @@ public class ContactoAdapter extends BaseAdapter implements Filterable {
     private Context context;
     private List<Contacto> originalList;
     private List<Contacto> filteredList;
+    private OnVideoClickListener videoClickListener;
 
-    public ContactoAdapter(Context context, List<Contacto> list) {
+    public interface OnVideoClickListener {
+        void onVideoClick(Contacto contacto);
+    }
+
+    public ContactoAdapter(Context context, List<Contacto> list, OnVideoClickListener listener) {
         this.context = context;
         this.originalList = list;
         this.filteredList = list;
+        this.videoClickListener = listener;
     }
 
     @Override
@@ -48,10 +55,17 @@ public class ContactoAdapter extends BaseAdapter implements Filterable {
         TextView nombre = convertView.findViewById(R.id.itemNombre);
         TextView telefono = convertView.findViewById(R.id.itemTelefono);
         TextView ubicacion = convertView.findViewById(R.id.itemUbicacion);
+        ImageView imgPlay = convertView.findViewById(R.id.imgPlay);
 
         nombre.setText(contacto.getNombre());
         telefono.setText(contacto.getTelefono());
         ubicacion.setText("Lat: " + contacto.getLatitud() + ", Lng: " + contacto.getLongitud());
+
+        imgPlay.setOnClickListener(v -> {
+            if (videoClickListener != null) {
+                videoClickListener.onVideoClick(contacto);
+            }
+        });
 
         return convertView;
     }
@@ -67,7 +81,8 @@ public class ContactoAdapter extends BaseAdapter implements Filterable {
                 } else {
                     List<Contacto> filtered = new ArrayList<>();
                     for (Contacto row : originalList) {
-                        if (row.getNombre().toLowerCase().contains(charString.toLowerCase())) {
+                        if (row.getNombre().toLowerCase().contains(charString.toLowerCase()) || 
+                            row.getTelefono().contains(charString)) {
                             filtered.add(row);
                         }
                     }

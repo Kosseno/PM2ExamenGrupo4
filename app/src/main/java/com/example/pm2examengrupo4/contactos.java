@@ -4,11 +4,15 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Base64;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
 
@@ -66,9 +70,10 @@ public class contactos extends AppCompatActivity {
             }
         });
 
+        // Click en el item de la lista solo para SELECCIONAR
         listView.setOnItemClickListener((parent, view, position, id) -> {
             seleccionado = (Contacto) adapter.getItem(position);
-            reproducirVideo(seleccionado.getVideoBase64());
+            Toast.makeText(this, "Seleccionado: " + seleccionado.getNombre(), Toast.LENGTH_SHORT).show();
         });
 
         listView.setOnItemLongClickListener((parent, view, position, id) -> {
@@ -78,7 +83,7 @@ public class contactos extends AppCompatActivity {
         });
 
         btnEliminar.setOnClickListener(v -> eliminarContacto());
-        btnActualizar.setOnClickListener(v -> actualizarContacto());
+        btnActualizar.setOnClickListener(v -> mostrarDialogoEdicion());
     }
 
     private void obtenerContactos() {
@@ -87,7 +92,10 @@ public class contactos extends AppCompatActivity {
             public void onResponse(Call<List<Contacto>> call, Response<List<Contacto>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     listaContactos = response.body();
-                    adapter = new ContactoAdapter(contactos.this, listaContactos);
+                    // Implementamos OnVideoClickListener para que el video solo abra al tocar el icono
+                    adapter = new ContactoAdapter(contactos.this, listaContactos, contacto -> {
+                        reproducirVideo(contacto.getVideoBase64());
+                    });
                     listView.setAdapter(adapter);
                 }
             }
@@ -142,31 +150,71 @@ public class contactos extends AppCompatActivity {
             Toast.makeText(this, "Seleccione un contacto primero", Toast.LENGTH_SHORT).show();
             return;
         }
-        api.deleteContacto(seleccionado.getId()).enqueue(new Callback<Void>() {
-            @Override
-            public void onResponse(Call<Void> call, Response<Void> response) {
-                obtenerContactos();
-                Toast.makeText(contactos.this, "Eliminado", Toast.LENGTH_SHORT).show();
-            }
+        new AlertDialog.Builder(this)
+                .setTitle("Eliminar")
+                .setMessage("¿Desea eliminar a " + seleccionado.getNombre() + "?")
+                .setPositiveButton("Sí", (dialog, which) -> {
+                    api.deleteContacto(seleccionado.getId()).enqueue(new Callback<Void>() {
+                        @Override
+                        public void onResponse(Call<Void> call, Response<Void> response) {
+                            obtenerContactos();
+                            Toast.makeText(contactos.this, "Eliminado", Toast.LENGTH_SHORT).show();
+                            seleccionado = null;
+                        }
 
-            @Override
-            public void onFailure(Call<Void> call, Throwable t) {
-                Toast.makeText(contactos.this, "Error al eliminar", Toast.LENGTH_SHORT).show();
-            }
-        });
+                        @Override
+                        public void onFailure(Call<Void> call, Throwable t) {
+                            Toast.makeText(contactos.this, "Error al eliminar", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                })
+                .setNegativeButton("No", null)
+                .show();
     }
 
-    private void actualizarContacto() {
+    private void mostrarDialogoEdicion() {
         if (seleccionado == null) {
             Toast.makeText(this, "Seleccione un contacto primero", Toast.LENGTH_SHORT).show();
             return;
         }
-        seleccionado.setNombre(seleccionado.getNombre() + " (Mod)");
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = getLayoutInflater();
+        View view = inflater.inflate(R.layout.dialog_editar_contacto, null);
+
+        EditText etNombre = view.findViewById(R.id.etNombreEdit);
+        EditText etTelefono = view.findViewById(R.id.etTelefonoEdit);
+        EditText etLatitud = view.findViewById(R.id.etLatitudEdit);
+        EditText etLongitud = view.findViewById(R.id.etLongitudEdit);
+
+        etNombre.setText(seleccionado.getNombre());
+        etTelefono.setText(seleccionado.getTelefono());
+        etLatitud.setText(seleccionado.getLatitud());
+        etLongitud.setText(seleccionado.getLongitud());
+
+        // Latitud y Longitud bloqueadas (read-only)
+        etLatitud.setEnabled(false);
+        etLongitud.setEnabled(false);
+
+        builder.setView(view)
+                .setTitle("Editar Contacto")
+                .setPositiveButton("Actualizar", (dialog, id) -> {
+                    seleccionado.setNombre(etNombre.getText().toString());
+                    seleccionado.setTelefono(etTelefono.getText().toString());
+                    // Aunque estén bloqueados en la UI, enviamos lo que tienen
+                    actualizarContacto();
+                })
+                .setNegativeButton("Cancelar", null);
+        builder.create().show();
+    }
+
+    private void actualizarContacto() {
         api.updateContacto(seleccionado.getId(), seleccionado).enqueue(new Callback<Contacto>() {
             @Override
             public void onResponse(Call<Contacto> call, Response<Contacto> response) {
                 obtenerContactos();
-                Toast.makeText(contactos.this, "Actualizado", Toast.LENGTH_SHORT).show();
+                Toast.makeText(contactos.this, "Actualizado con éxito", Toast.LENGTH_SHORT).show();
+                seleccionado = null;
             }
 
             @Override
