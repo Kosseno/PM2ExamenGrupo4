@@ -10,6 +10,7 @@ import android.widget.SearchView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -42,7 +43,6 @@ public class contactos extends AppCompatActivity {
         btnEliminar = findViewById(R.id.btneliminarcontacto);
         btnActualizar = findViewById(R.id.btnactualizarcontacto);
 
-        // Usando configuración global para la IP
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(Config.BASE_URL) 
                 .addConverterFactory(GsonConverterFactory.create())
@@ -101,23 +101,30 @@ public class contactos extends AppCompatActivity {
 
     private void reproducirVideo(String base64) {
         try {
+            if (base64 == null || base64.isEmpty()) {
+                Toast.makeText(this, "El contacto no tiene un video guardado", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             byte[] videoBytes = Base64.decode(base64, Base64.DEFAULT);
-            File tempFile = File.createTempFile("temp_video", ".mp4", getCacheDir());
+            File tempFile = new File(getExternalFilesDir(null), "temp_video.mp4");
             FileOutputStream fos = new FileOutputStream(tempFile);
             fos.write(videoBytes);
             fos.close();
 
+            Uri videoUri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", tempFile);
+
             Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setDataAndType(Uri.fromFile(tempFile), "video/mp4");
+            intent.setDataAndType(videoUri, "video/mp4");
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             startActivity(intent);
         } catch (Exception e) {
-            Toast.makeText(this, "Error al reproducir video", Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+            Toast.makeText(this, "Error al reproducir: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
     private void abrirEnMapa(Contacto c) {
-        // Abrir Google Maps directamente
         String uri = "geo:" + c.getLatitud() + "," + c.getLongitud() + "?z=16&q=" + c.getLatitud() + "," + c.getLongitud() + "(" + Uri.encode(c.getNombre()) + ")";
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
         intent.setPackage("com.google.android.apps.maps");
@@ -125,7 +132,6 @@ public class contactos extends AppCompatActivity {
         try {
             startActivity(intent);
         } catch (Exception e) {
-            // Si Google Maps no está instalado, usar el navegador u otra app de mapas
             Intent fallbackIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
             startActivity(fallbackIntent);
         }

@@ -33,9 +33,10 @@ public class video extends AppCompatActivity {
 
     private static final int REQUEST_VIDEO_CAPTURE = 1;
     private static final int REQUEST_PERMISSION_CODE = 100;
+    private static final int REQUEST_LOCATION_PERMISSION_CODE = 101;
 
     private EditText txtNombre, txtTelefono, txtLatitud, txtLongitud;
-    private Button btnTomarVideo, btnSalvarContacto, btnContactosSalvados;
+    private Button btnTomarVideo, btnSalvarContacto, btnContactosSalvados, btnActualizarUbicacion;
     private String videoBase64 = "";
     private FusedLocationProviderClient fusedLocationClient;
 
@@ -51,6 +52,7 @@ public class video extends AppCompatActivity {
         btnTomarVideo = findViewById(R.id.btntomarvideo);
         btnSalvarContacto = findViewById(R.id.btnsalvarcontacto);
         btnContactosSalvados = findViewById(R.id.btncontactossalvados);
+        btnActualizarUbicacion = findViewById(R.id.btnActualizarUbicacion);
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
@@ -59,6 +61,8 @@ public class video extends AppCompatActivity {
         btnContactosSalvados.setOnClickListener(v -> {
             startActivity(new Intent(this, contactos.class));
         });
+        
+        btnActualizarUbicacion.setOnClickListener(v -> obtenerUbicacion());
 
         obtenerUbicacion();
     }
@@ -107,13 +111,16 @@ public class video extends AppCompatActivity {
 
     private void obtenerUbicacion() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_PERMISSION_CODE);
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION_PERMISSION_CODE);
             return;
         }
         fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
             if (location != null) {
                 txtLatitud.setText(String.valueOf(location.getLatitude()));
                 txtLongitud.setText(String.valueOf(location.getLongitude()));
+                Toast.makeText(this, "Ubicación actualizada", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "No se pudo obtener la ubicación. Active el GPS.", Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -132,7 +139,7 @@ public class video extends AppCompatActivity {
         Contacto nuevo = new Contacto(null, nombre, telefono, latitud, longitud, videoBase64);
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(Config.BASE_URL) // Usando configuración global
+                .baseUrl(Config.BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
@@ -166,9 +173,11 @@ public class video extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQUEST_PERMISSION_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permiso concedido
-            } else {
-                Toast.makeText(this, "Permisos necesarios denegados", Toast.LENGTH_SHORT).show();
+                dispatchTakeVideoIntent();
+            }
+        } else if (requestCode == REQUEST_LOCATION_PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                obtenerUbicacion();
             }
         }
     }
