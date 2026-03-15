@@ -3,6 +3,7 @@ package com.example.pm2examengrupo4;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -103,6 +104,10 @@ public class video extends AppCompatActivity {
             }
             videoBase64 = Base64.encodeToString(byteBuffer.toByteArray(), Base64.DEFAULT);
             Toast.makeText(this, "Video capturado y procesado", Toast.LENGTH_SHORT).show();
+            
+            // Feedback visual: Cambiar texto y color del botón
+            btnTomarVideo.setText("✓ VIDEO CAPTURADO");
+            btnTomarVideo.setTextColor(Color.parseColor("#2E7D32")); // Verde oscuro
         } catch (Exception e) {
             e.printStackTrace();
             Toast.makeText(this, "Error al procesar video", Toast.LENGTH_SHORT).show();
@@ -166,6 +171,10 @@ public class video extends AppCompatActivity {
         txtNombre.setText("");
         txtTelefono.setText("");
         videoBase64 = "";
+        
+        // Resetear feedback del botón de video
+        btnTomarVideo.setText("TOCAR PARA GRABAR VIDEO");
+        btnTomarVideo.setTextColor(Color.parseColor("#333333"));
     }
 
     @Override
