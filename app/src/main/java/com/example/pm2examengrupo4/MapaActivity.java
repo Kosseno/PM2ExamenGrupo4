@@ -2,6 +2,8 @@ package com.example.pm2examengrupo4;
 
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.widget.ImageButton;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -29,17 +31,26 @@ public class MapaActivity extends AppCompatActivity {
         double lng = Double.parseDouble(getIntent().getStringExtra("longitud"));
         String nombre = getIntent().getStringExtra("nombre");
 
+        // UI Elements
         map = findViewById(R.id.map);
-        map.setTileSource(TileSourceFactory.MAPNIK); // OpenStreetMap
+        TextView txtNombre = findViewById(R.id.txtNombreMapa);
+        TextView txtCoords = findViewById(R.id.txtCoordsMapa);
+        ImageButton btnBack = findViewById(R.id.btnBack);
+
+        txtNombre.setText(nombre);
+        txtCoords.setText(String.format("Lat: %.6f, Lng: %.6f", lat, lng));
+        btnBack.setOnClickListener(v -> finish());
+
+        // Configuración del Mapa
+        map.setTileSource(TileSourceFactory.MAPNIK);
         map.setMultiTouchControls(true);
+        map.getController().setZoom(17.0);
+        GeoPoint startPoint = new GeoPoint(lat, lng);
+        map.getController().setCenter(startPoint);
 
-        // Centrar mapa en la ubicación
-        map.getController().setZoom(15.0);
-        map.getController().setCenter(new GeoPoint(lat, lng));
-
-        // Agregar marcador
+        // Agregar marcador personalizado
         Marker marker = new Marker(map);
-        marker.setPosition(new GeoPoint(lat, lng));
+        marker.setPosition(startPoint);
         marker.setTitle(nombre);
         marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
         map.getOverlays().add(marker);

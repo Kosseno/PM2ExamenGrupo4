@@ -132,7 +132,7 @@ public class video extends AppCompatActivity {
         Contacto nuevo = new Contacto(null, nombre, telefono, latitud, longitud, videoBase64);
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://192.168.56.1/") // REEMPLAZAR CON URL REAL
+                .baseUrl(Config.BASE_URL) // Usando configuración global
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
@@ -144,7 +144,7 @@ public class video extends AppCompatActivity {
                     Toast.makeText(video.this, "Contacto guardado con éxito", Toast.LENGTH_SHORT).show();
                     limpiarCampos();
                 } else {
-                    Toast.makeText(video.this, "Error al guardar", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(video.this, "Error al guardar: " + response.code(), Toast.LENGTH_SHORT).show();
                 }
             }
 

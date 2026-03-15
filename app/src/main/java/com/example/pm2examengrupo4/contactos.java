@@ -42,8 +42,9 @@ public class contactos extends AppCompatActivity {
         btnEliminar = findViewById(R.id.btneliminarcontacto);
         btnActualizar = findViewById(R.id.btnactualizarcontacto);
 
+        // Usando configuración global para la IP
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://tu-api-aqui.com/") // REEMPLAZAR
+                .baseUrl(Config.BASE_URL) 
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         api = retrofit.create(ContactosApi.class);
@@ -93,7 +94,7 @@ public class contactos extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<List<Contacto>> call, Throwable t) {
-                Toast.makeText(contactos.this, "Error al obtener datos", Toast.LENGTH_SHORT).show();
+                Toast.makeText(contactos.this, "Error al obtener datos: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -116,24 +117,25 @@ public class contactos extends AppCompatActivity {
     }
 
     private void abrirEnMapa(Contacto c) {
-        // Opción 1: Mapa Interno
-        Intent intent = new Intent(this, MapaActivity.class);
-        intent.putExtra("latitud", c.getLatitud());
-        intent.putExtra("longitud", c.getLongitud());
-        intent.putExtra("nombre", c.getNombre());
-        startActivity(intent);
-
-        // Opción 2: Google Maps External (Extra)
-        /*
-        Uri gmmIntentUri = Uri.parse("google.navigation:q=" + c.getLatitud() + "," + c.getLongitud() + "&mode=d");
-        Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-        mapIntent.setPackage("com.google.android.apps.maps");
-        startActivity(mapIntent);
-        */
+        // Abrir Google Maps directamente
+        String uri = "geo:" + c.getLatitud() + "," + c.getLongitud() + "?z=16&q=" + c.getLatitud() + "," + c.getLongitud() + "(" + Uri.encode(c.getNombre()) + ")";
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+        intent.setPackage("com.google.android.apps.maps");
+        
+        try {
+            startActivity(intent);
+        } catch (Exception e) {
+            // Si Google Maps no está instalado, usar el navegador u otra app de mapas
+            Intent fallbackIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+            startActivity(fallbackIntent);
+        }
     }
 
     private void eliminarContacto() {
-        if (seleccionado == null) return;
+        if (seleccionado == null) {
+            Toast.makeText(this, "Seleccione un contacto primero", Toast.LENGTH_SHORT).show();
+            return;
+        }
         api.deleteContacto(seleccionado.getId()).enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
@@ -142,14 +144,17 @@ public class contactos extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<Void> call, Throwable t) {}
+            public void onFailure(Call<Void> call, Throwable t) {
+                Toast.makeText(contactos.this, "Error al eliminar", Toast.LENGTH_SHORT).show();
+            }
         });
     }
 
     private void actualizarContacto() {
-        if (seleccionado == null) return;
-        // Aquí se podría abrir un diálogo o actividad para editar
-        // Por simplicidad, mandamos el mismo con nombre modificado
+        if (seleccionado == null) {
+            Toast.makeText(this, "Seleccione un contacto primero", Toast.LENGTH_SHORT).show();
+            return;
+        }
         seleccionado.setNombre(seleccionado.getNombre() + " (Mod)");
         api.updateContacto(seleccionado.getId(), seleccionado).enqueue(new Callback<Contacto>() {
             @Override
@@ -159,7 +164,9 @@ public class contactos extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<Contacto> call, Throwable t) {}
+            public void onFailure(Call<Contacto> call, Throwable t) {
+                Toast.makeText(contactos.this, "Error al actualizar", Toast.LENGTH_SHORT).show();
+            }
         });
     }
 }
