@@ -43,4 +43,4 @@ Antes de compilar la aplicación, asegúrate de actualizar la dirección IP de t
    ```
 
 ---
-*Desarrollado como parte del examen de Programación Móvil 2.*
+
